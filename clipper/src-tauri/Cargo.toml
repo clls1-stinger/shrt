@@ -1,0 +1,27 @@
+[package]
+name = "shrt-clipper"
+version = "0.2.0"
+edition = "2021"
+description = "Comparte capturas, grabaciones y links cortos desde el escritorio"
+license = "MIT"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-notification = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+arboard = { version = "3", features = ["wayland-data-control"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+dirs = "5"
+png = "0.17"
+
+[target.'cfg(windows)'.dependencies]
+tauri-plugin-autostart = "2"
+
+[profile.release]
+strip = true
+# lto desactivado a propósito: el frontend va embebido, cada cambio recompila
+# el binario; con lto el link tardaba ~7min. Sin lto, ~1min.

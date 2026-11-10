@@ -1,0 +1,10 @@
+node_modules/
+web/dist/
+.wrangler/
+.dev.vars
+dist/
+*.log
+clipper/src-tauri/target/
+clipper/dist/
+.DS_Store
+.deploy.env

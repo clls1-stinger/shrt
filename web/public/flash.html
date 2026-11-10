@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  html,body{margin:0;width:100%;height:100%;background:transparent;overflow:hidden}
+  .wrap{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none}
+  .ring{position:absolute;width:40px;height:40px;border-radius:50%;border:3px solid rgba(122,162,247,.95);box-shadow:0 0 14px rgba(122,162,247,.8)}
+  .a{animation:pulse .85s ease-out forwards}
+  .b{animation:pulse .85s ease-out .12s forwards}
+  .core{width:14px;height:14px;border-radius:50%;background:#7aa2f7;box-shadow:0 0 18px #7aa2f7;animation:fade .85s ease-out forwards}
+  @keyframes pulse{0%{transform:scale(.2);opacity:1}100%{transform:scale(3.2);opacity:0}}
+  @keyframes fade{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.6);opacity:0}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="ring a"></div>
+    <div class="ring b"></div>
+    <div class="core"></div>
+  </div>
+  <script>
+    // Cierra la ventana al terminar la animación.
+    setTimeout(() => {
+      try { window.__TAURI__.core.invoke("close_flash"); }
+      catch (e) { try { window.__TAURI__.window.getCurrentWindow().close(); } catch (_) {} }
+    }, 880);
+  </script>
+</body>
+</html>

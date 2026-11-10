@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "shrt",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-06-01",
+  "observability": { "enabled": true },
+  // shrt.emky.com.mx como custom domain (wrangler crea el DNS automáticamente al deploy).
+  "routes": [
+    { "pattern": "shrt.emky.com.mx", "custom_domain": true }
+  ],
+  // Dashboard Preact compilado a ./web/dist. Los assets que no matchean caen al Worker.
+  "assets": {
+    "directory": "./web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "none"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "shrt",
+      "database_id": "7ec7a986-3902-43da-b64d-4b349d01f20d",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "BASE_HOST": "shrt.emky.com.mx",
+    "MEDIA_ORIGIN": "https://shrt-media.emky.com.mx"
+  }
+}
