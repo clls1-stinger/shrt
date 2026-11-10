@@ -75,7 +75,9 @@ const UPLOAD_ERRORS: Record<string, string> = {
 };
 
 export async function uploadMedia(blob: Blob): Promise<MediaItem> {
-  const res = await fetch(`${publicBase()}/api/media`, { method: "POST", body: blob });
+  const res = await fetch(`${publicBase()}/api/media`, {
+    method: "POST", body: blob, signal: AbortSignal.timeout(600_000),
+  }).catch(() => { throw new Error("No hay conexión con el servidor"); });
   const data: any = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(UPLOAD_ERRORS[data.error] || "No se pudo subir el archivo");
   return { ...data, ts: Math.floor(Date.now() / 1000) };

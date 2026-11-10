@@ -28,6 +28,19 @@ export function App() {
       .finally(() => setReady(true));
   }, []);
 
+  // En la app, los enlaces externos se abren en el navegador del sistema.
+  useEffect(() => {
+    if (!isTauri) return;
+    function onClick(e: MouseEvent) {
+      const a = (e.target as Element).closest?.('a[target="_blank"]') as HTMLAnchorElement | null;
+      if (!a) return;
+      e.preventDefault();
+      invoke("open_url", { url: a.href }).catch(() => {});
+    }
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, []);
+
   function flash(m: string, err = false) {
     setToast({ m, err });
     setTimeout(() => setToast(null), err ? 4500 : 2200);

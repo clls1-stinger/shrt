@@ -1,5 +1,6 @@
 import { useState } from "preact/hooks";
-import { api } from "../api";
+import { api, publicBase } from "../api";
+import { copyText } from "../tauri";
 
 export function CreateLink({
   onClose, onDone, toast,
@@ -18,7 +19,7 @@ export function CreateLink({
     setErr(""); setBusy(true);
     try {
       const link = await api.createLink({ url, code: code || undefined, title, description, image });
-      navigator.clipboard.writeText(link.short_url || `${location.origin}/${link.code}`);
+      await copyText(link.short_url || `${publicBase()}/${link.code}`).catch(() => {});
       toast(`Creado y copiado: /${link.code}`);
       onDone();
     } catch (e: any) {

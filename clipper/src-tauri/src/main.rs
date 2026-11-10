@@ -406,7 +406,7 @@ fn get_history(state: tauri::State<AppState>) -> Vec<HistItem> {
     state.history.lock().unwrap().iter().rev().take(50).cloned().collect()
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn shorten_now(app: tauri::AppHandle, text: String) -> Result<String, String> {
     let cfg = app.state::<AppState>().config.lock().unwrap().clone();
     if cfg.token.is_empty() {
@@ -422,7 +422,7 @@ fn get_media(state: tauri::State<AppState>) -> Vec<MediaItem> {
     state.media.lock().unwrap().clone()
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn media_done(app: tauri::AppHandle, item: MediaItem) {
     remember_media(&app, item);
 }
@@ -434,7 +434,7 @@ fn forget_media(state: tauri::State<AppState>, code: String) {
     save_media(&items);
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn copy_text(text: String) -> Result<(), String> {
     arboard::Clipboard::new()
         .and_then(|mut c| c.set_text(text))
@@ -446,7 +446,7 @@ fn platform() -> &'static str {
     std::env::consts::OS
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn start_capture() -> Result<(), String> {
     #[cfg(windows)]
     {
@@ -473,7 +473,7 @@ fn start_capture() -> Result<(), String> {
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn start_record(mode: String) -> Result<(), String> {
     if !matches!(mode.as_str(), "r" | "s" | "w") {
         return Err("Modo inválido".into());
@@ -485,13 +485,33 @@ fn start_record(mode: String) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
+fn open_url(url: String) -> Result<(), String> {
+    if !(url.starts_with("https://") || url.starts_with("http://")) {
+        return Err("URL inválida".into());
+    }
+    #[cfg(windows)]
+    let mut command = {
+        let mut c = std::process::Command::new("rundll32");
+        c.args(["url.dll,FileProtocolHandler", &url]);
+        c
+    };
+    #[cfg(not(windows))]
+    let mut command = {
+        let mut c = std::process::Command::new("xdg-open");
+        c.arg(&url);
+        c
+    };
+    command.spawn().map(|_| ()).map_err(|e| e.to_string())
+}
+
+#[tauri::command(async)]
 fn close_flash(window: tauri::WebviewWindow) {
     let _ = window.close();
 }
 
 // Resumen de links desde el API (code, target, clicks…) para mostrar en la ventana.
-#[tauri::command]
+#[tauri::command(async)]
 fn get_links(app: tauri::AppHandle) -> Result<serde_json::Value, String> {
     let cfg = app.state::<AppState>().config.lock().unwrap().clone();
     if cfg.token.is_empty() {
@@ -653,6 +673,7 @@ fn main() {
             platform,
             start_capture,
             start_record,
+            open_url,
             close_flash
         ])
         .setup(|app| {

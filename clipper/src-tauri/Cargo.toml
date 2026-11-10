@@ -1,6 +1,6 @@
 [package]
 name = "shrt-clipper"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Comparte capturas, grabaciones y links cortos desde el escritorio"
 license = "MIT"

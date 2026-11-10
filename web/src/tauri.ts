@@ -15,6 +15,12 @@ export const listen: (event: string, cb: (e: any) => void) => Promise<() => void
   ? T.event.listen
   : async () => () => {};
 
+// Portapapeles nativo en la app: el del webview depende del foco y falla en Linux.
+export async function copyText(text: string): Promise<void> {
+  if (isTauri) await invoke("copy_text", { text });
+  else await navigator.clipboard.writeText(text);
+}
+
 export interface ClipperConfig {
   base: string;
   token: string;

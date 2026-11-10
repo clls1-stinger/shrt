@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { api, publicBase, type Link } from "../api";
+import { copyText } from "../tauri";
 
 export function LinksList({
   onOpen, onCreate, toast,
@@ -8,6 +9,7 @@ export function LinksList({
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [kind, setKind] = useState("all");
+  const [confirming, setConfirming] = useState("");
 
   function load() {
     setLoading(true);
@@ -16,7 +18,7 @@ export function LinksList({
   useEffect(load, []);
 
   async function del(code: string) {
-    if (!confirm(`¿Borrar /${code}? Se eliminan también sus stats.`)) return;
+    setConfirming("");
     await api.deleteLink(code);
     toast("Link borrado");
     load();
@@ -24,8 +26,7 @@ export function LinksList({
 
   function copy(code: string) {
     const url = `${publicBase()}/${code}`;
-    navigator.clipboard.writeText(url);
-    toast(`Copiado: ${url}`);
+    copyText(url).then(() => toast(`Copiado: ${url}`)).catch(() => toast("No se pudo copiar"));
   }
 
   const filtered = links.filter((l) => (kind === "all" || (l.kind || "link") === kind) && (
@@ -65,7 +66,9 @@ export function LinksList({
                     <div class="row" style="justify-content:flex-end">
                       <button class="btn sm ghost" title="Copiar" aria-label={`Copiar ${l.code}`} onClick={() => copy(l.code)}>⧉</button>
                       <button class="btn sm ghost" title="Estadísticas" aria-label={`Estadísticas de ${l.code}`} onClick={() => onOpen(l.code)}>📊</button>
-                      <button class="btn sm ghost danger" title="Borrar" aria-label={`Borrar ${l.code}`} onClick={() => del(l.code)}>✕</button>
+                      {confirming === l.code
+                        ? <button class="btn sm danger" onClick={() => del(l.code)} onBlur={() => setConfirming("")}>¿Borrar?</button>
+                        : <button class="btn sm ghost danger" title="Borrar" aria-label={`Borrar ${l.code}`} onClick={() => setConfirming(l.code)}>✕</button>}
                     </div>
                   </td>
                 </tr>

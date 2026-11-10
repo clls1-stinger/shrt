@@ -1,3 +1,4 @@
+import { copyText } from "../tauri";
 import { useEffect, useState } from "preact/hooks";
 import { api, publicBase } from "../api";
 import { AreaChart, Bars } from "./Chart";
@@ -14,7 +15,7 @@ export function LinkStats({ code, onBack, toast }: { code: string; onBack: () =>
   }, [code, range]);
 
   const shortUrl = `${publicBase()}/${code}`;
-  function copy() { navigator.clipboard.writeText(shortUrl); toast("Copiado"); }
+  function copy() { copyText(shortUrl).then(() => toast("Copiado")).catch(() => toast("No se pudo copiar")); }
 
   if (loading && !data) return <div class="empty"><span class="spin" /></div>;
   const t = data?.totals ?? {};

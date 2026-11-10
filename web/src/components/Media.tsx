@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { deleteMedia, uploadMedia, waitForMedia, type MediaItem } from "../api";
-import { invoke, isTauri, listen, type ClipperConfig } from "../tauri";
+import { copyText, invoke, isTauri, listen, type ClipperConfig } from "../tauri";
 
 const STORE = "shrt_media";
 const MAX_RECORD_SECONDS = 300;
@@ -32,6 +32,7 @@ export function Media({ toast }: { toast: (m: string, err?: boolean) => void }) 
   const [platform, setPlatform] = useState("web");
   const [mode, setMode] = useState("r");
   const [seconds, setSeconds] = useState<number | null>(null);
+  const [confirming, setConfirming] = useState("");
   const recorder = useRef<MediaRecorder | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -59,9 +60,8 @@ export function Media({ toast }: { toast: (m: string, err?: boolean) => void }) 
   }, []);
 
   async function copy(text: string, label = "Link copiado") {
-    if (isTauri) await invoke("copy_text", { text });
-    else await navigator.clipboard.writeText(text);
-    toast(label);
+    try { await copyText(text); toast(label); }
+    catch { toast("No se pudo copiar", true); }
   }
 
   async function send(blob: Blob) {
@@ -88,7 +88,7 @@ export function Media({ toast }: { toast: (m: string, err?: boolean) => void }) 
   }
 
   async function remove(item: MediaItem) {
-    if (!confirm("¿Borrar este archivo? El link dejará de funcionar.")) return;
+    setConfirming("");
     try {
       await deleteMedia(item);
       if (isTauri) await invoke("forget_media", { code: item.code });
@@ -220,7 +220,9 @@ export function Media({ toast }: { toast: (m: string, err?: boolean) => void }) 
               </div>
               <div class="actions">
                 <button class="btn primary sm" onClick={() => copy(i.url)}>Copiar link</button>
-                <button class="btn ghost danger sm" onClick={() => remove(i)}>Borrar</button>
+                {confirming === i.code
+                  ? <button class="btn danger sm" onClick={() => remove(i)} onBlur={() => setConfirming("")}>¿Borrar el link?</button>
+                  : <button class="btn ghost danger sm" onClick={() => setConfirming(i.code)}>Borrar</button>}
               </div>
               <div class="formats">
                 {FORMATS.filter(([label]) => i.kind === "image" || label === "Directo").map(([label, make]) => (
